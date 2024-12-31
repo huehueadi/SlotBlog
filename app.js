@@ -15,15 +15,16 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.get('/',(req, res)=>{
+  res.send("health")
+});
+
+
+app.set('trust proxy', true);
 
 app.use("/api", router);
 
-app.get("/", (req, res)=> {
-  return res.status(200).json({
-    message: "Backend Working",
-    success: true
-  })
-})
+
 
 app.listen(9000, () => {
   console.log("Server started on port 9000");
