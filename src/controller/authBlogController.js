@@ -1,23 +1,33 @@
 import Blog from "../model/blogModel.js";
 
 export const createBlog = async (req, res) => {
-  try {
-    const { title, content, author } = req.body;
+  const { title, content, author } = req.body;
 
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized access. Please log in." });
+  }
+
+  try {
+    const { userName } = req.user;
+    
     if (!title || !content || !author) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
     const newBlog = new Blog({
+      userName,
       title,
       content,
       author,
     });
 
     await newBlog.save();
-    return res.status(201).json({ message: "Blog created successfully", blog: newBlog });
+    return res.status(201).json({ 
+      message: "Blog created successfully", 
+      success: true,
+      blog: newBlog 
+    });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -27,7 +37,16 @@ export const getAllBlogs = async (req, res) => {
     const blogs = await Blog.find();
     return res.status(200).json(blogs);
   } catch (error) {
-    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const getAllUserBlogs = async (req, res) => {
+  try {
+    const { userName } = req.user;
+    const blogs = await Blog.find({ userName });
+    return res.status(200).json(blogs);
+  } catch (error) {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -43,7 +62,6 @@ export const getBlogById = async (req, res) => {
 
     return res.status(200).json(blog);
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -65,7 +83,6 @@ export const updateBlog = async (req, res) => {
 
     return res.status(200).json({ message: "Blog updated successfully", blog: updatedBlog });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
@@ -81,7 +98,6 @@ export const deleteBlog = async (req, res) => {
 
     return res.status(200).json({ message: "Blog deleted successfully" });
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };

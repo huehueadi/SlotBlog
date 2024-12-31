@@ -1,54 +1,80 @@
 import Slot from "../model/slotModel.js";
-import Blog from "../model/blogModel.js"; 
-
+import moment from 'moment-timezone';
 
 export const createSlot = async (req, res) => {
   try {
-    const { slotId, startTime, endTime, blogId } = req.body;
+    const { startTime, endTime, blogId } = req.body;
+    const { userName } = req.user;
 
-    if (!slotId || !startTime || !endTime || !blogId) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!startTime || !endTime || !blogId) {
+      return res.status(400).json({ message: "All fields are required", success: false });
     }
 
-    const blog = await Blog.findById(blogId);
-    if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
-    }
+    const startTimeUTC = moment.tz(startTime, 'Asia/Kolkata').utc().toISOString();
+    const endTimeUTC = moment.tz(endTime, 'Asia/Kolkata').utc().toISOString();
 
-    const allSlots = await Slot.find({});
-    const isOverlapping = allSlots.some((existingSlot) => {
-      const { startTime: existStartTime, endTime: existEndTime } = existingSlot;
-      return startTime < existEndTime && endTime > existStartTime;
+    const existingSlotsForBlog = await Slot.find({ blogId });
+
+    const isOverlapping = existingSlotsForBlog.some((existingSlot) => {
+      const existStartTime = moment(existingSlot.startTime).utc().toISOString();
+      const existEndTime = moment(existingSlot.endTime).utc().toISOString();
+
+      return startTimeUTC < existEndTime && endTimeUTC > existStartTime;
     });
 
     if (isOverlapping) {
-      return res.status(400).json({ message: "Slot overlaps with an existing slot" });
+      return res.status(400).json({
+        message: "Slot overlaps with an existing slot for this blog",
+        success: false,
+      });
     }
 
     const newSlot = new Slot({
-      slotId,
-      startTime,
-      endTime,
+      userName,
+      startTime: startTimeUTC,
+      endTime: endTimeUTC,
       blogId,
     });
 
     await newSlot.save();
-    return res.status(201).json({ message: "Slot created successfully", newSlot });
+
+    return res.status(201).json({
+      message: "Slot created successfully",
+      success: true,
+      newSlot,
+    });
+
   } catch (error) {
     console.error("Error creating slot:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({
+      message: "Internal Server Error",
+      success: false,
+    });
   }
 };
 
-
 export const getSlots = async (req, res) => {
-    try {
+  try {
+    const currentTime = moment().toDate();
 
-        const slots = await Slot.find().populate("blogId");
-      return res.status(200).json(slots);
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
-  };
-  
+    const slots = await Slot.find().populate("blogId");
+
+    const nonExpiredSlots = slots.filter((slot) => {
+      const slotEndTime = moment(slot.endTime).toDate();
+      return slotEndTime > currentTime;
+    });
+
+    return res.status(200).json({
+      message: "Slots fetched successfully",
+      success: true,
+      slots: nonExpiredSlots,
+    });
+
+  } catch (error) {
+    console.error("Error fetching slots:", error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      success: false,
+    });
+  }
+};

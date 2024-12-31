@@ -1,11 +1,7 @@
 import mongoose from "mongoose";
 
 const SlotSchema = new mongoose.Schema({
-  slotId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
+  
   startTime: {
     type: String,
     required: true
@@ -22,7 +18,8 @@ const SlotSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref:"Blog",
     required:true
-  }
+  },
+
 });
 
 const Slot = mongoose.model('Slot', SlotSchema);
