@@ -8,10 +8,10 @@ const app = express();
 connectionDatabase();
 
 app.use(cors({
-  origin: "http://localhost:3001",  // Frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Methods allowed for requests
-  allowedHeaders: ['Content-Type', 'Authorization'],  // Headers allowed in requests
-  credentials: true  // Allow cookies (credentials) to be sent and received
+  origin: "http://localhost:3001",  
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],  
+  allowedHeaders: ['Content-Type', 'Authorization'], 
+  credentials: true  
 }));
 
 app.use(express.json());
