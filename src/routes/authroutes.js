@@ -12,7 +12,9 @@ router.get("/slots", getSlots);
 router.get("/get-active-blogs", getSlots); 
 
 router.post("/blogs", authentication,createBlog); 
-router.get("/get-blogs", getAllBlogs); 
+router.get("/get-blogs", getAllBlogs);
+router.get("/get-detail-blog/:id", getBlogById);
+
 router.get("/get-user-blogs", authentication, getAllUserBlogs); 
 
 router.get("/blogs/:id", authentication, getBlogById); 
