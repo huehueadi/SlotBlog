@@ -31,3 +31,6 @@ build/
 
 # Operating System files (Linux, Windows, macOS)
 *.swp
+# Environment variable files
+.env
+.env.*.local

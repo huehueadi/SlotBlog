@@ -8,7 +8,7 @@ const app = express();
 connectionDatabase();
 
 app.use(cors({
-  origin: ["http://localhost:3001", "https://slot-blog-frontend.vercel.app"], 
+  origin: ["http://localhost:3001", "https://slot-blog-frontend.vercel.app", "http://localhost:300"], 
   methods: ['GET', 'POST', 'PUT', 'DELETE'],  
   allowedHeaders: ['Content-Type', 'Authorization'], 
   credentials: true  
