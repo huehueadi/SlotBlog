@@ -1,5 +1,6 @@
-import Slot from "../model/slotModel.js";
-import moment from 'moment-timezone';
+import moment from "moment-timezone";
+import geoip from "geoip-lite";
+import Slot from "../models/Slot.js";
 
 export const createSlot = async (req, res) => {
   try {
@@ -10,8 +11,19 @@ export const createSlot = async (req, res) => {
       return res.status(400).json({ message: "All fields are required", success: false });
     }
 
-    const startTimeUTC = moment.tz(startTime, 'Asia/Kolkata').utc().toISOString();
-    const endTimeUTC = moment.tz(endTime, 'Asia/Kolkata').utc().toISOString();
+
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    const geo = geoip.lookup(ip);
+
+    if (!geo || !geo.timezone) {
+      return res.status(400).json({ message: "Could not determine time zone", success: false });
+    }
+
+    const userTimeZone = geo.timezone; 
+
+    const startTimeUTC = moment.tz(startTime, userTimeZone).utc().toISOString();
+    const endTimeUTC = moment.tz(endTime, userTimeZone).utc().toISOString();
+
 
     const existingSlotsForBlog = await Slot.find({ blogId });
 
@@ -28,6 +40,7 @@ export const createSlot = async (req, res) => {
         success: false,
       });
     }
+
 
     const newSlot = new Slot({
       userName,
@@ -52,6 +65,7 @@ export const createSlot = async (req, res) => {
     });
   }
 };
+
 
 export const getSlots = async (req, res) => {
   try {
